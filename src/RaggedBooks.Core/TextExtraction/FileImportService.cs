@@ -13,18 +13,21 @@ namespace RaggedBooks.Core.TextExtraction;
 
 public class FileImportService
 {
+    private readonly IConvertToBook _bookConverter;
     private readonly ITextEmbeddingGenerationService _textEmbeddingGenerationService;
     private readonly VectorSearchService _vectorSearchService;
     private readonly ILogger<FileImportService> _logger;
     private readonly RaggedBookConfig _config;
 
     public FileImportService(
+        IConvertToBook convertToBook,
         Kernel kernel,
         VectorSearchService vectorSearchService,
         ILogger<FileImportService> logger,
         IOptions<RaggedBookConfig> config
     )
     {
+        _bookConverter = convertToBook;
         _textEmbeddingGenerationService =
             kernel.GetRequiredService<ITextEmbeddingGenerationService>();
         _vectorSearchService = vectorSearchService;
@@ -81,12 +84,19 @@ public class FileImportService
             return;
         }
 
-        _logger.LogInformation("Importing file: {Bookname}", file);
-        var book = await TextExtractor.LoadBook(file);
+        var sw = Stopwatch.StartNew();
+
+        _logger.LogInformation("Loading file: {Bookname}", file);
+        var book = await _bookConverter.Convert(file);
+        _logger.LogInformation(" -> Loaded in {Elapsed}", sw.ElapsedMilliseconds);
+
+        sw.Restart();
+
+        var bookmarks = new BookmarkTree(book.Chapters);
 
         var pages = book.Pages;
         var chunks = new List<ContentChunk>();
-        var sw = Stopwatch.StartNew();
+        
         _logger.LogInformation(
             "Found {PageCount} pages in {BookTitle} {FileName}. Creating embeddings...",
             pages.Count,
@@ -112,11 +122,12 @@ public class FileImportService
             foreach (var (index, paragraph) in paragraphs.Select((x, index) => (index, x)))
             {
                 var embedding = embeddings[index];
+
                 var chunk = new ContentChunk
                 {
                     Id = Guid.NewGuid(),
                     Book = book.Title,
-                    Chapter = book.BookmarkTree.GetChapterPath(page.pagenumber),
+                    Chapter = bookmarks.GetChapterPath(page.pagenumber),
                     PageNumber = page.pagenumber,
                     Content = paragraph,
                     ContentEmbedding = embedding,

@@ -39,7 +39,9 @@ namespace RaggedBooks.Core
             // vector store and api
             services.AddQdrantVectorStore();
             services.AddSingleton<VectorSearchService>();
+            services.AddTransient<IConvertToBook, PdfToBookConverter>();
             services.AddSingleton<QDrantApiClient>();
+
 
             services.AddSingleton<FileImportService>();
             services.AddSingleton<Kernel>(serviceProvider =>

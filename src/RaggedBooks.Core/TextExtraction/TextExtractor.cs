@@ -4,64 +4,68 @@ using UglyToad.PdfPig.Outline;
 
 namespace RaggedBooks.Core.TextExtraction;
 
-public static class TextExtractor
+public interface IConvertToBook
 {
-    public record Page(string TextContent, int pagenumber);
+    Task<BookConversion.Book> Convert(string fileName);
+}
+
+public class BookConversion
+{
+    public record Page(
+        string TextContent,
+        int pagenumber);
+
+    public record Chapter(
+        string Title,
+        int Level,
+        int Pagenumber);
 
     public record Book(
         string Title,
         List<Page> Pages,
-        BookmarkTree BookmarkTree,
+        List<Chapter> Chapters,
         string Authors,
         string Filename
     );
+}
 
-    public static async Task<Book> LoadBook(string fileName)
+
+public class PdfToBookConverter : IConvertToBook
+{
+    public async Task<BookConversion.Book> Convert(string fileName)
     {
-        if (!File.Exists(fileName))
-        {
-            throw new FileNotFoundException("File not found", fileName);
-        }
+        using var pdfDocument = PdfDocument.Open(fileName);
 
-        await using var stream = File.OpenRead(fileName);
-
-        var pages = await GetContentAsync(stream);
-        _ = stream.Seek(0, SeekOrigin.Begin);
-        var chapters = await GetChapters(stream);
+        var pages = await GetContentAsync(pdfDocument);
+        
+        var chapters = await GetChapters(pdfDocument);
 
         var bookmarkTree = new BookmarkTree(chapters);
-        _ = stream.Seek(0, SeekOrigin.Begin);
-        using var pdfDocument = PdfDocument.Open(stream);
+        
         var title = pdfDocument.Information.Title ?? string.Empty;
         var authors = pdfDocument.Information.Author ?? string.Empty;
 
-        return new Book(title, pages, bookmarkTree, authors, Path.GetFileName(fileName));
+        return new BookConversion.Book(title, pages, chapters, authors, Path.GetFileName(fileName));
     }
 
-    public static Task<List<Page>> GetContentAsync(Stream stream)
+    private Task<List<BookConversion.Page>> GetContentAsync(PdfDocument pdfDocument)
     {
-        var pages = new List<Page>();
-
-        // Read the content of the PDF document.
-        using var pdfDocument = PdfDocument.Open(stream);
+        var pages = new List<BookConversion.Page>();
 
         // get the title of the book
         foreach (var page in pdfDocument.GetPages().Where(x => x is not null))
         {
             var pageContent = ContentOrderTextExtractor.GetText(page) ?? string.Empty;
-            pages.Add(new Page(pageContent, page.Number));
+            pages.Add(new BookConversion.Page(pageContent, page.Number));
         }
 
         return Task.FromResult(pages);
     }
 
-    public record Chapter(string Title, int Level, int Pagenumber);
-
-    public static Task<List<Chapter>> GetChapters(Stream stream)
+    private Task<List<BookConversion.Chapter>> GetChapters(PdfDocument pdfDocument)
     {
-        var result = new List<Chapter>();
-        // Read the content of the PDF document.
-        using var pdfDocument = PdfDocument.Open(stream);
+        var result = new List<BookConversion.Chapter>();
+
         if (pdfDocument.TryGetBookmarks(out var bookmarks))
         {
             var bookmarkNodes = bookmarks.GetNodes();
@@ -69,7 +73,7 @@ public static class TextExtractor
             {
                 if (node is DocumentBookmarkNode docmark)
                 {
-                    result.Add(new Chapter(docmark.Title, docmark.Level, docmark.PageNumber));
+                    result.Add(new BookConversion.Chapter(docmark.Title, docmark.Level, docmark.PageNumber));
                 }
             }
         }

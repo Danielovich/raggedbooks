@@ -6,13 +6,13 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/ollama/storage
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
 
   qdrant:
     image: qdrant/qdrant
