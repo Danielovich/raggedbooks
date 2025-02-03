@@ -20,6 +20,7 @@ public class ChaperCollectionTests
     [Test]
     public void Returns_Correct_ChapterCollection()
     {
+        // Arrange
         var chapters = new List<Chapter>
         {
             new Chapter("Chapter 1", 0, 1),
@@ -30,6 +31,7 @@ public class ChaperCollectionTests
 
         var sut = new ChaperCollection(chapters);
 
+        // Act Assert
         var path = sut.ByPageNumber(10);
         Assert.That(path.Equals("Chapter 1 > Author > Acknowledgements"));
 
@@ -48,7 +50,6 @@ public class ChaperCollectionTests
                 "data",
                 Path.DirectorySeparatorChar,
                 "chapterpaths.csv");
-
 
             using var reader = new StreamReader(csvFilePath);
             using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture));
