@@ -3,7 +3,7 @@
 public record Book(
     string Title,
     List<Page> Pages,
-    ChapterPath ChapterPath,
+    ChaperCollection ChapterPath,
     string Authors,
     string Filename
 );

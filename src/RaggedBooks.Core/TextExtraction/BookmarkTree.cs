@@ -4,12 +4,12 @@ namespace RaggedBooks.Core.TextExtraction;
 /// Represents a tree of bookmarks for a PDF document.
 /// Used to enrich the chunks with metadata
 /// </summary>
-public sealed class ChapterPath
+public sealed class ChaperCollection
 {
     private readonly List<Chapter> _chapters;
     private readonly Dictionary<int, string> _chapterPathCache = new();
 
-    public ChapterPath(IEnumerable<Chapter> chapters)
+    public ChaperCollection(IEnumerable<Chapter> chapters)
     {
         _chapters = chapters.ToList();
     }

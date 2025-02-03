@@ -54,7 +54,7 @@ namespace RaggedBooks.Tests
         [CsvAutoData()]
         public void Returns_Chapter_Paths(List<Chapter> chapters)
         {
-            var sut = new ChapterPath(chapters);
+            var sut = new ChaperCollection(chapters);
 
             //Todo
         }
@@ -70,7 +70,7 @@ namespace RaggedBooks.Tests
                 new Chapter("Acknowledgements", 2, 9)
             };
 
-            var sut = new ChapterPath(chapters);
+            var sut = new ChaperCollection(chapters);
 
             var path = sut.ByPageNumber(10);
             Assert.That(path.Equals("Chapter 1 > Author > Acknowledgements"));

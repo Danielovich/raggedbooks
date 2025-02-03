@@ -19,7 +19,7 @@ public class PdfToBookConverter : IConvertToBook
 
         var chapters = await GetChapters(pdfDocument);
 
-        var chapterPath = new ChapterPath(chapters);
+        var chapterPath = new ChaperCollection(chapters);
 
         var title = pdfDocument.Information.Title ?? string.Empty;
         var authors = pdfDocument.Information.Author ?? string.Empty;
