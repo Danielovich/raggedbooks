@@ -16,15 +16,14 @@ public class PdfToBookConverter : IConvertToBook
         using var pdfDocument = PdfDocument.Open(fileName);
 
         var pages = await GetContentAsync(pdfDocument);
-
         var chapters = await GetChapters(pdfDocument);
 
-        var chapterPath = new ChaperCollection(chapters);
+        var chapterCollection = new ChaperCollection(chapters);
 
         var title = pdfDocument.Information.Title ?? string.Empty;
         var authors = pdfDocument.Information.Author ?? string.Empty;
 
-        return new Book(title, pages, chapterPath, authors, Path.GetFileName(fileName));
+        return new Book(title, pages, chapterCollection, authors, Path.GetFileName(fileName));
     }
 
     private Task<List<Page>> GetContentAsync(PdfDocument pdfDocument)

@@ -1,13 +1,43 @@
-﻿using AutoFixture;
-using AutoFixture.NUnit4;
-using CsvHelper;
-using CsvHelper.Configuration;
-using RaggedBooks.Core.TextExtraction;
-using System.Globalization;
+﻿namespace RaggedBooks.Tests;
 
-
-namespace RaggedBooks.Tests
+public class ChaperCollectionTests
 {
+    [Test]
+    [CsvAutoData()]
+    public void Returns_Correct_ChapterCollection(List<Chapter> chapters)
+    {
+        // Arrange
+        var sut = new ChaperCollection(chapters);
+
+        // Act
+        var result = sut.ByPageNumber(47);
+
+        // Assert 
+        Assert.That(result.Equals("Preface > Chapter 1: Welcome to Software Construction > 2.2 How to Use Software Metaphors"));
+        
+    }
+
+    [Test]
+    public void Returns_Correct_ChapterCollection()
+    {
+        var chapters = new List<Chapter>
+        {
+            new Chapter("Chapter 1", 0, 1),
+            new Chapter("Foreword", 1, 3),
+            new Chapter("Author", 1, 5),
+            new Chapter("Acknowledgements", 2, 9)
+        };
+
+        var sut = new ChaperCollection(chapters);
+
+        var path = sut.ByPageNumber(10);
+        Assert.That(path.Equals("Chapter 1 > Author > Acknowledgements"));
+
+        path = sut.ByPageNumber(5);
+        Assert.That(path.Equals("Chapter 1 > Author"));
+    }
+
+
     internal static class CsvDataLoader
     {
         public static List<Chapter> GetChaptersFromCsv()
@@ -44,39 +74,6 @@ namespace RaggedBooks.Tests
             fixture.Register(() => chapters);
 
             return fixture;
-        }
-    }
-
-
-    public class ChapterPathTests
-    {
-        [Test]
-        [CsvAutoData()]
-        public void Returns_Chapter_Paths(List<Chapter> chapters)
-        {
-            var sut = new ChaperCollection(chapters);
-
-            //Todo
-        }
-
-        [Test]
-        public void Returns_Correct_ChapterPath()
-        {
-            var chapters = new List<Chapter>
-            {
-                new Chapter("Chapter 1", 0, 1),
-                new Chapter("Foreword", 1, 3),
-                new Chapter("Author", 1, 5),
-                new Chapter("Acknowledgements", 2, 9)
-            };
-
-            var sut = new ChaperCollection(chapters);
-
-            var path = sut.ByPageNumber(10);
-            Assert.That(path.Equals("Chapter 1 > Author > Acknowledgements"));
-
-            path = sut.ByPageNumber(5);
-            Assert.That(path.Equals("Chapter 1 > Author"));
         }
     }
 }
